@@ -205,7 +205,6 @@ end
 equation(integrator::IntegratorSIRK) = integrator.params.equ
 timestep(integrator::IntegratorSIRK) = integrator.params.Δt
 tableau(integrator::IntegratorSIRK) = integrator.params.tab
-dims(integrator::IntegratorSIRK) = integrator.params.equ.d
 Base.eltype(integrator::IntegratorSIRK{DT, TT, PT, ST, N}) where {DT, TT, PT, ST, N} = DT
 
 
@@ -233,7 +232,7 @@ function initial_guess!(int::IntegratorSIRK{DT,TT}) where {DT,TT}
 
     # SIMPLE SOLUTION
     # The simplest initial guess for Y is 0
-    # int.solver.x .= zeros(eltype(int), int.params.tab.s*dims(int))
+    # int.solver.x .= zeros(eltype(int), int.params.tab.s*ndims(int))
 
     # USING AN EXPLICIT INTEGRATOR TO COMPUTE AN INITIAL GUESS
     # Below we use the R2 method of Burrage & Burrage to calculate
@@ -321,7 +320,7 @@ function integrate_step!(int::IntegratorSIRK{DT,TT}, sol::SolutionSDE{DT,TT,NQ,N
 
     # truncate the increments ΔW with A
     if int.params.A>0
-        for i in 1:length(int.params.ΔW)
+        for i in eachindex(int.params.ΔW)
             if int.params.ΔW[i]<-int.params.A
                 int.params.ΔW[i] = -int.params.A
             elseif int.params.ΔW[i]>int.params.A
@@ -356,5 +355,5 @@ function integrate_step!(int::IntegratorSIRK{DT,TT}, sol::SolutionSDE{DT,TT,NQ,N
     cut_periodic_solution!(int.q[k,m], int.params.equ.periodicity)
 
     # # copy to solution
-    copy_solution!(sol, int.q[k,m], n, k, m)
+    set_solution!(sol, int.q[k,m], n, k, m)
 end
